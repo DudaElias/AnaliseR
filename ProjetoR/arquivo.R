@@ -1,7 +1,8 @@
 nomes <- c("horario", "temperatura", "vento", "umidade", "sensacao")
-dados <- read.csv("D:/Documentos/ProjetoR/cepagri.csv", header=FALSE, sep=";", col.names = nomes)
+dados <- read.csv("D:/Documentos/GitHub/AnaliseR/ProjetoRcepagri.csv", header=FALSE, sep=";", col.names = nomes)
 library(ggplot2)
 library(ggExtra)
+library(gridExtra)
 
 dados$horario <- as.POSIXct(dados$horario, format="%d/%m/%Y-%H:%M")
 
@@ -161,4 +162,58 @@ UmidadeNoDia <- UmidadeNoDia + geom_line() + scale_x_datetime(date_label = "%H:%
 UmidadeNoDia
 
 
-       
+
+#Tabelas
+
+head(dadosOficial)
+
+
+estacao <- as.POSIXct(tz="America/Sao_Paulo", origin= '2015-01-01',sapply(dadosOficial$horario, function(x){
+  x
+}))
+
+estacao <- dadosOficial$horario
+
+diaMeses <- as.POSIXct(format(strptime(diaEscolhido$horario,"%Y-%m-%d %H:%M:%S"), '%m-%d'), format='%m-%d')
+
+
+
+dadosOficial[dadosOficial$horario >= "03-20" & dadosOficial$horario < "06-20", "estacao"] <-"outono"
+dadosOficial[dadosOficial$horario >= "06-20" & dadosOficial$horario < "09-22", "estacao"] <-"inverno"
+dadosOficial[dadosOficial$horario >= "09-22" & dadosOficial$horario < "12-21", "estacao"] <-"primavera"
+dadosOficial[is.na(dadosOficial$estacao), "estacao"] <- "verao"
+
+
+options(max.print=1000000)
+table(dadosOficial$temperatura[dadosOficial$horario >= '2015-01-01' & dadosOficial$horario < '2016-01-01'], dadosOficial$estacao[dadosOficial$horario >= '2015-01-01' & dadosOficial$horario < '2016-01-01'])
+tabela2 <- table(dadosOficial$temperatura[dadosOficial$horario >= '2019-01-01' & dadosOficial$horario < '2020-01-01'], dadosOficial$estacao[dadosOficial$horario >= '2019-01-01' & dadosOficial$horario < '2020-01-01'])
+setwd("D:/Documentos/GitHub/AnaliseR/")
+
+tabela <- table(dadosOficial$temperatura[dadosOficial$horario >= '2015-01-01' & dadosOficial$horario < '2016-01-01'], dadosOficial$estacao[dadosOficial$horario >= '2015-01-01' & dadosOficial$horario < '2016-01-01'])
+names(dimnames(tabela)) <- c("temperatura", "estações")
+names(dimnames(tabela2)) <- c("temperatura", "estações")
+
+tabela
+tabela2
+
+tabela3 <- tapply(dadosOficial$temperatura, dadosOficial$estacao, mean)
+tabela4 <- tapply(dadosOficial$umidade, dadosOficial$estacao, mean)
+
+tabela3 <- cbind(tabela3, tabela4)
+colnames(tabela3) <- c("temperatura", "umidade")
+tabela3
+
+
+tabela5 <- tapply(dadosOficial$sensacao, dadosOficial$estacao, mean)
+tabela6 <- tapply(dadosOficial$umidade, dadosOficial$estacao, mean)
+tabela7 <- tapply(dadosOficial$vento, dadosOficial$estacao, mean)
+
+tabela5 <- cbind(tabela5, tabela6)
+tabela5 <- cbind(tabela5, tabela7)
+colnames(tabela5) <- c("sensação", "umidade", "vento")
+tabela5
+
+
+
+
+
