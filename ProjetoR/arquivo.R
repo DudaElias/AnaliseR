@@ -1,75 +1,47 @@
-nomes <- c("horario", "temperatura", "vento", "umidade", "sensacao")
-dados <- read.csv("D:/Documentos/GitHub/AnaliseR/ProjetoRcepagri.csv", header=FALSE, sep=";", col.names = nomes)
+#Preparando os dados
+
+#Bibliotecas importadas para o projeto
 library(ggplot2)
 library(ggExtra)
 library(gridExtra)
 
+#Criação do data frame
+nomes <- c("horario", "temperatura", "vento", "umidade", "sensacao")
+dados <- read.csv("D:/Documentos/GitHub/AnaliseR/ProjetoR/cepagri.csv", header=FALSE, sep=";", col.names = nomes)
+
+#Transforma ca coluna de horario em tipo POSIXct
 dados$horario <- as.POSIXct(dados$horario, format="%d/%m/%Y-%H:%M")
 
+#Seleciona os dados dos anos entre 2015 e 2020
 d <- dados[dados$horario >= "2015-01-01" & dados$horario < "2020-01-01",]
+
+#Deleta as linhas que tem dados faltantes
 d <- na.omit(d)
+
+#Transforma a coluna de temperatura em numeric
 d$temperatura <- as.numeric(d$temperatura)
 
-plot <- ggplot(d, aes(y=temperatura, x=sensacao))
-plot <- plot + geom_line()
-plot
-
-
+#Resumo das informações do data frame
 summary(d)
 
-head(d, n = 20L)
-
-
-
-anyDuplicated(d$horario)
+#Verifica se há duplicado
 anyDuplicated(d)
 
-
-d[2831:2832,]
-
-d[duplicated(d),]
-
-d[25205:25206,]
-
-
-d[129232:129233,]
-
-d[189519:189520,]
-
+#dadosOficial será o data frame usado durante o projeto, sem nenhum dado duplicado em horário
 dadosOficial <- d[!duplicated(d),]
 
-
+#Resumo das informações sem informações repetidas
 summary(dadosOficial)
 
 
-plot <- plot + geom_area()
-plot
-
-plot2 <- ggplot(dadosOficial, aes(x=temperatura))
-plot2 <- plot2 + geom_histogram()
-plot2
 
 # Normalizar dados absurdos
 
 
-summary(dTeste)
-
+#Gráfico do tipo pairs para observar os dados e suas correlações graficamente
 pairs(dadosOficial[,], pch = 19,lower.panel = NULL)
 
-
-dadosOficial$umidade[dadosOficial$umidade < 5] <- mean(dadosOficial$umidade[dadosOficial$horario >= "2019-01-05" & dadosOficial$horario < "2019-01-06"])
-dTeste
-
-mean(dadosOficial$umidade[dadosOficial$horario >= "2019-01-05" & dadosOficial$horario < "2019-01-06"])
-
-
-
-mean(dadosOficial$sensacao[dadosOficial$horario >= "2016-08-29 00:00:00" & dadosOficial$horario < "2016-08-30" & dadosOficial$horario != "2016-08-29 07:10:00"])
-mean(dadosOficial$sensacao[dadosOficial$horario >= "2016-07-20 00:00:00" & dadosOficial$horario < "2016-07-21" & dadosOficial$horario != "2016-07-20 07:10:00"])
-dadosOficial[dadosOficial$horario >= "2016-08-29 00:00:00" & dadosOficial$horario < "2016-08-30" & dadosOficial$horario != "2016-08-29 07:10:00",]
-dadosOficial[dadosOficial$horario >= "2016-07-20 00:00:00" & dadosOficial$horario < "2016-07-21" & dadosOficial$horario != "2016-07-20 07:10:00",]
-
-
+#Normaliza a sensação térmica de 99.9 para o valor do horário anterior
 for(i in 1:nrow(dadosOficial)){
 
   if(dadosOficial$sensacao[i] == 99.9)
@@ -79,6 +51,7 @@ for(i in 1:nrow(dadosOficial)){
   
 }
 
+#Normaliza a umidade de 0 para o valor do horário anterior
 for(i in 1:nrow(dadosOficial)){
   
   if(dadosOficial$umidade[i] == 0)
@@ -89,20 +62,18 @@ for(i in 1:nrow(dadosOficial)){
 }
 
 
+#Adiciona a coluna de estacao do ano usando hardcode
+
+dadosOficial[as.POSIXct(format(strptime(dadosOficial$horario,"%Y-%m-%d %H:%M:%S"), '%m-%d'), format='%m-%d') >=as.POSIXct("3-20", format="%m-%d", tz='America/Sao_Paulo') & as.POSIXct(format(strptime(dadosOficial$horario,"%Y-%m-%d %H:%M:%S"), '%m-%d'), format='%m-%d') < as.POSIXct("6-20" , format="%m-%d", tz='America/Sao_Paulo'), "estacao"] <-"outono"
+dadosOficial[as.POSIXct(format(strptime(dadosOficial$horario,"%Y-%m-%d %H:%M:%S"), '%m-%d'), format='%m-%d') >=as.POSIXct("6-20", format="%m-%d", tz='America/Sao_Paulo') & as.POSIXct(format(strptime(dadosOficial$horario,"%Y-%m-%d %H:%M:%S"), '%m-%d'), format='%m-%d') < as.POSIXct("9-22" , format="%m-%d", tz='America/Sao_Paulo'), "estacao"] <-"inverno"
+dadosOficial[as.POSIXct(format(strptime(dadosOficial$horario,"%Y-%m-%d %H:%M:%S"), '%m-%d'), format='%m-%d') >=as.POSIXct("9-22", format="%m-%d", tz='America/Sao_Paulo') & as.POSIXct(format(strptime(dadosOficial$horario,"%Y-%m-%d %H:%M:%S"), '%m-%d'), format='%m-%d') < as.POSIXct("12-21" , format="%m-%d", tz='America/Sao_Paulo'), "estacao"] <-"primavera"
+dadosOficial[is.na(dadosOficial$estacao), "estacao"] <- "verao"
 
 
-# Montar os gráficos por tempo, temperatura e umidade, 
+
 # Tabelas: 
-# Aquecimento ok, Variação por mês ok, temperatura e umidade, sensação térmica é influenciada, umidade e horário
 
-#Sensação térmica
-
-plot <- ggplot(dadosOficial, aes(y=temperatura, x=sensacao))
-plot <- plot + geom_line()
-plot
-
-
-#pair plot de todas as informações
+#Após o tratamento dos dados faz novamente o pair plot para ver se os dados ficaram normalizados
 
 panel.points<-function(x,y)
 {
@@ -111,33 +82,38 @@ panel.points<-function(x,y)
 
 pairs(dadosOficial[,],lower.panel=NULL,upper.panel=panel.points)
 
-#Aquecimento
+
+
+
+#Sensação térmica e temperatura, line plot
+
+plot <- ggplot(dadosOficial, aes(y=temperatura, x=sensacao))
+plot <- plot + geom_line()
+plot
+
+
+#Temperatura e horário, line plot
 
 plot <- ggplot(dadosOficial, aes(y=temperatura, x=horario, colour=horario))
 plot <- plot + geom_line()
 plot
 
 
-#Variação por mês
+#Variação por mês de temperatura, boxplot
 
-meses <- factor(month.abb[as.integer(format(as.Date(dadosOficial$horario),"%m"))], levels = month.abb, ordered = TRUE)
+meses <- factor(month.abb[as.integer(format(as.Date(dadosOficial$horario),"%m"))], levels = month.abb, ordered = TRUE) #separa em meses o data frame
 g <- ggplot(dadosOficial,aes(x=meses,y=temperatura,group=meses,fill=meses))+geom_boxplot()+scale_fill_brewer(palette="Set3")
+g
 
 
-#Temperatura e umidade
-
-TempUmi <- ggplot(dadosOficial, aes(x=temperatura, y=umidade, color=umidade)) + geom_point()
-TempUniHist <- ggMarginal(TempUmi, type="density")
-TempUniHist
-
-#Sensação e umidade
+#Sensação e umidade, marginal plot
 
 SenUmi <- ggplot(dadosOficial, aes(x=sensacao, y=umidade, color=umidade)) + geom_point()
 SenUmiHist <- ggMarginal(SenUmi, type="density")
 SenUmiHist
 
 
-#Sensação e vento
+#Sensação e vento, smooth plot
 
 SenV <- ggplot(dadosOficial, aes(x = sensacao, y = vento)) +
   geom_point(color="lightsalmon") +
@@ -145,19 +121,30 @@ SenV <- ggplot(dadosOficial, aes(x = sensacao, y = vento)) +
 
 SenV
 
+#Umidade por horário durante um dia de um ano especifico, line plot
 
-#Umidade por horario
+dia <- dadosOficial[format(dadosOficial$horario, "%m-%d-%Y") == "05-04-2018",] #Seleciona o dia 4 de maio de 2018
+UmidadeHoraNoDia <- ggplot(dia, aes(y=umidade, x=horario)) + geom_line()
+UmidadeHoraNoDia
+
+#Umidade por horario durante os 5 anos, line plot
 
 
-diaEscolhido <- dadosOficial[format(dadosOficial$horario, "%m-%d") == "05-07",]
-dia <- factor(as.array(as.Date(diaEscolhido$horario, format="%d", tz='America/Sao_Paulo')))
-horas <- as.POSIXct(format(strptime(diaEscolhido$horario,"%Y-%m-%d %H:%M:%S"), '%H:%M'), format='%H:%M')
+diaEscolhido <- dadosOficial[format(dadosOficial$horario, "%m-%d") == "05-07",] #Seleciona o dia 7 de maio
 
-diaEscolhido <- cbind(diaEscolhido, dia)
-rm(dia)
-diaEscolhido <- cbind(diaEscolhido,horas)
-rm(horas)
-UmidadeNoDia <- ggplot(diaEscolhido, aes(y=umidade, x=horas, colour= dia))
+dia <- factor(as.array(as.Date(diaEscolhido$horario, format="%d", tz='America/Sao_Paulo'))) #Separa o dia de cada ano e coloca como fator
+
+horas <- as.POSIXct(format(strptime(diaEscolhido$horario,"%Y-%m-%d %H:%M:%S"), '%H:%M'), format='%H:%M') #Separa as horas daquele dia especifico do horario todo
+
+diaEscolhido <- cbind(diaEscolhido, dia) #Adiciona a coluna de dia no diaEscolhido
+
+rm(dia) # Remove a variável dia para não ter confusão do programa quando for criar o gráfico
+
+diaEscolhido <- cbind(diaEscolhido,horas) # Adiciona a coluna de horas no diaEscolhido
+
+rm(horas) # Remove a variável horas para não ter confusão do programa quando for criar o gráfico
+
+UmidadeNoDia <- ggplot(diaEscolhido, aes(y=umidade, x=horas, colour= dia))      
 UmidadeNoDia <- UmidadeNoDia + geom_line() + scale_x_datetime(date_label = "%H:%M")
 UmidadeNoDia
 
@@ -165,55 +152,22 @@ UmidadeNoDia
 
 #Tabelas
 
-head(dadosOficial)
+#Todas as tabelas usam valores das médias de temperatura, vento, umidade e sensação térmica em cada estação durante os 5 anos da análise
+
+tabelaTempEstacao <- tapply(dadosOficial$temperatura, dadosOficial$estacao, mean)
+tabelaUmiEstacao <- tapply(dadosOficial$umidade, dadosOficial$estacao, mean)
+tabelaSenEstacao <- tapply(dadosOficial$sensacao, dadosOficial$estacao, mean)
+tabelaVenEstacao <- tapply(dadosOficial$vento, dadosOficial$estacao, mean)
 
 
-estacao <- as.POSIXct(tz="America/Sao_Paulo", origin= '2015-01-01',sapply(dadosOficial$horario, function(x){
-  x
-}))
-
-estacao <- dadosOficial$horario
-
-diaMeses <- as.POSIXct(format(strptime(diaEscolhido$horario,"%Y-%m-%d %H:%M:%S"), '%m-%d'), format='%m-%d')
+#Tabela de temperatura e umidade durante as estações
+tabelaUmiTempEstacao <- cbind(tabelaTempEstacao, tabelaUmiEstacao)
+colnames(tabelaUmiTempEstacao) <- c("temperatura", "umidade")
+tabelaUmiTempEstacao
 
 
+#Tabela de sensação térmica, umidade e vento durante as estações
 
-dadosOficial[dadosOficial$horario >= "03-20" & dadosOficial$horario < "06-20", "estacao"] <-"outono"
-dadosOficial[dadosOficial$horario >= "06-20" & dadosOficial$horario < "09-22", "estacao"] <-"inverno"
-dadosOficial[dadosOficial$horario >= "09-22" & dadosOficial$horario < "12-21", "estacao"] <-"primavera"
-dadosOficial[is.na(dadosOficial$estacao), "estacao"] <- "verao"
-
-
-options(max.print=1000000)
-table(dadosOficial$temperatura[dadosOficial$horario >= '2015-01-01' & dadosOficial$horario < '2016-01-01'], dadosOficial$estacao[dadosOficial$horario >= '2015-01-01' & dadosOficial$horario < '2016-01-01'])
-tabela2 <- table(dadosOficial$temperatura[dadosOficial$horario >= '2019-01-01' & dadosOficial$horario < '2020-01-01'], dadosOficial$estacao[dadosOficial$horario >= '2019-01-01' & dadosOficial$horario < '2020-01-01'])
-setwd("D:/Documentos/GitHub/AnaliseR/")
-
-tabela <- table(dadosOficial$temperatura[dadosOficial$horario >= '2015-01-01' & dadosOficial$horario < '2016-01-01'], dadosOficial$estacao[dadosOficial$horario >= '2015-01-01' & dadosOficial$horario < '2016-01-01'])
-names(dimnames(tabela)) <- c("temperatura", "estações")
-names(dimnames(tabela2)) <- c("temperatura", "estações")
-
-tabela
-tabela2
-
-tabela3 <- tapply(dadosOficial$temperatura, dadosOficial$estacao, mean)
-tabela4 <- tapply(dadosOficial$umidade, dadosOficial$estacao, mean)
-
-tabela3 <- cbind(tabela3, tabela4)
-colnames(tabela3) <- c("temperatura", "umidade")
-tabela3
-
-
-tabela5 <- tapply(dadosOficial$sensacao, dadosOficial$estacao, mean)
-tabela6 <- tapply(dadosOficial$umidade, dadosOficial$estacao, mean)
-tabela7 <- tapply(dadosOficial$vento, dadosOficial$estacao, mean)
-
-tabela5 <- cbind(tabela5, tabela6)
-tabela5 <- cbind(tabela5, tabela7)
-colnames(tabela5) <- c("sensação", "umidade", "vento")
-tabela5
-
-
-
-
-
+tabelaSenUmiVenEstacao <- cbind(tabelaSenEstacao, tabelaUmiEstacao, tabelaVenEstacao)
+colnames(tabelaSenUmiVenEstacao) <- c("sensação", "umidade", "vento")
+tabelaSenUmiVenEstacao
